@@ -2,6 +2,7 @@ import {
   BehaviorSubject,
   Observable,
   catchError,
+  forkJoin,
   from,
   map,
   mergeMap,
@@ -10,6 +11,7 @@ import {
   throwError,
 } from 'rxjs';
 import { SnackbarService } from './snackbar.service';
+import { Group, Project } from '@openstapps/gitlab-api';
 
 const SCOPE = ['api'];
 
@@ -28,14 +30,30 @@ export interface TokenResponse {
   created_at: number;
 }
 
+export interface Pipeline {
+  id: number;
+  iid: number;
+  project_id: number;
+  sha: string;
+  ref: string;
+  status: string;
+  source: string;
+  created_at: string;
+  updated_at: string;
+  web_url: string;
+  name: string | null;
+}
+
 class Gitlab {
   private snack = SnackbarService;
-  private url = 'https://gitlab.correllink.com';
+  private url = 'https://gitlab.correllink.com/api/v4';
 
   loadingState = new BehaviorSubject(true);
   private userSession: GitSession;
 
   private actions: Set<string> = new Set();
+
+  private projects: Project[] = [];
 
   constructor() {
     const autoRefresh = () => {
@@ -62,7 +80,7 @@ class Gitlab {
       if (this.isLoggedIn) {
         this.fetchPipelines().subscribe();
       }
-    }, 5000);
+    }, 50000);
   }
 
   minutesToMilliseconds(mins: number) {
@@ -106,6 +124,10 @@ class Gitlab {
       .replace(/=+$/, '');
   }
 
+  // Function to generate a random state value
+  private generateState() {
+    return Math.random().toString(36).substring(2, 15);
+  }
   /**
    * Go to the spotify oauth page to get an exchange code
    */
@@ -113,6 +135,7 @@ class Gitlab {
     const verifier = this.generateCodeVerifier(128);
     const challenge = await this.generateCodeChallenge(verifier);
 
+    const state = this.generateState();
     localStorage.setItem('verifier', verifier);
     const params = new URLSearchParams();
     params.append('client_id', this.clientID);
@@ -124,6 +147,7 @@ class Gitlab {
     params.append('scope', SCOPE.join(' '));
     params.append('code_challenge_method', 'S256');
     params.append('code_challenge', challenge);
+    params.append('state', state);
 
     document.location = `https://gitlab.correllink.com/oauth/authorize?${params.toString()}`;
   }
@@ -136,6 +160,8 @@ class Gitlab {
   loginWithCode(code: string) {
     const verifier = localStorage.getItem('verifier');
     const params = new URLSearchParams();
+    const state = this.generateState();
+
     params.append('client_id', this.clientID);
     params.append('grant_type', 'authorization_code');
     params.append('code', code);
@@ -145,6 +171,7 @@ class Gitlab {
     );
     params.append('code_verifier', verifier!);
 
+    params.append('state', state);
     return this.api('https://gitlab.correllink.com/oauth/token', {
       method: 'POST',
       headers: {
@@ -159,9 +186,47 @@ class Gitlab {
     );
   }
 
+  fetchProjects() {
+    if (this.projects.length === 0) {
+      return this.api('/groups').pipe(
+        mergeMap((groups: Group[]) => {
+          return forkJoin(
+            groups.map((p) => {
+              return this.api(`/groups/${p.id}/projects`);
+            })
+          );
+        }),
+        tap((projects: Project[][]) => {
+          this.projects = projects.flat();
+        }),
+        map(() => this.projects)
+      );
+    } else {
+      return of(this.projects);
+    }
+  }
+
   fetchPipelines() {
     // TODO
-    return of('todo');
+    return this.fetchProjects().pipe(
+      map((projects) => {
+        return projects.filter((p) => !p.archived);
+      }),
+      mergeMap((projects) => {
+        return forkJoin(
+          projects.map((p) => {
+            return this.api(`/projects/${p.id}/pipelines`);
+          })
+        ).pipe(map((pipelines: Pipeline[][]) => pipelines.flat()));
+      }),
+      tap((pipelines) => {
+        pipelines.sort(
+          (a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        console.log(pipelines);
+      })
+    );
   }
 
   /**

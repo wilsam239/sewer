@@ -7,7 +7,7 @@ import {
 } from 'vue-router';
 
 import routes from './routes';
-import { SpotifyService } from 'src/services/spotify.service';
+import { GitlabService } from 'src/services/gitlab.service';
 
 /*
  * If not building with SSR mode, you can
@@ -35,7 +35,7 @@ export default route(function (/* { store, ssrContext } */) {
     history: createHistory(process.env.VUE_ROUTER_BASE),
   });
 
-  const spotify = SpotifyService;
+  const spotify = GitlabService;
   Router.beforeEach(async (to, from) => {
     if (to.name !== 'login' && !spotify.isLoggedIn) {
       return { name: 'login' };

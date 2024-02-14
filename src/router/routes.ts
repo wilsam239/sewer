@@ -1,4 +1,4 @@
-import PlaylistViewerVue from 'src/components/dashboard/PlaylistViewer.vue';
+import PipelineListVue from 'src/components/dashboard/PipelineList.vue';
 import { RouteRecordRaw } from 'vue-router';
 
 const routes: RouteRecordRaw[] = [
@@ -17,18 +17,12 @@ const routes: RouteRecordRaw[] = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       {
-        path: ':id',
-        name: 'dashboard_playlists',
-        component: PlaylistViewerVue,
+        path: 'all',
+        name: 'dashboard_pipeline',
+        component: PipelineListVue,
       },
     ],
   },
-  {
-    path: '/bingo',
-    name: 'bingo',
-    component: () => import('layouts/BingoLayout.vue'),
-  },
-
   // Always leave this as last one,
   // but you can also remove it
   {

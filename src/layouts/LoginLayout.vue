@@ -25,7 +25,7 @@ onMounted(() => {
 
   if (code) {
     ss.loginWithCode(code).subscribe(() => {
-      router.push('/dashboard');
+      router.push('/dashboard/all');
     });
   } else {
     if (ss.refresh_token) {
