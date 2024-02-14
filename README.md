@@ -1,6 +1,6 @@
-# Musical Bingo (sewer-quasar)
+# The Sewer
 
-Dashboard to create, run, and manage musical bingo at a pub
+Dashboard to view the status of all gitlab pipelines
 
 ## Install the dependencies
 
