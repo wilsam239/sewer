@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { mergeMap } from 'rxjs/internal/operators/mergeMap';
 import { tap } from 'rxjs/internal/operators/tap';
-import { Ref, onMounted, ref, toRaw, watch } from 'vue';
+import { Ref, computed, onMounted, ref, toRaw, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import GeneratorDialog from './GeneratorDialog.vue';
 import SongList from './SongList.vue';
@@ -18,6 +18,25 @@ const project: Ref<Project | undefined> = ref(undefined);
 const pipelines: Ref<Pipeline[]> = ref([]);
 
 const loading = ref(true);
+
+const statusMap = {
+  'In Progress': [
+    'created',
+    'waiting_for_resource',
+    'preparing',
+    'pending',
+    'scheduled',
+    'running',
+  ],
+  Complete: ['success', 'failed', 'canceled', 'skipped', 'manual'],
+};
+
+const statusIcon = {
+  'In Progress': 'play_circle_outline',
+  pending: 'pause_circle_outline',
+  running: 'play_circle_outline',
+  Complete: 'stop_circle',
+};
 
 function fetchProject(id: number) {
   gitlab
@@ -54,6 +73,14 @@ function checkRoute() {
       .subscribe();
   }
 }
+const pendingPipelines = computed(() =>
+  pipelines.value.filter((p) => statusMap['In Progress'].includes(p.status))
+);
+const completedPipelines = computed(() =>
+  pipelines.value.filter((p) => statusMap['Complete'].includes(p.status))
+);
+
+
 watch(
   route,
   (r) => {
@@ -67,66 +94,16 @@ onMounted(() => {
 });
 </script>
 <style lang="scss">
-.now-playing {
-  color: $primary;
+.status-card {
+  min-height: 250px;
 }
-.song-text-label {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.song-number {
-  width: 14px;
-}
-
-#pipeline-description {
-  word-break: break-all;
-}
-
 body.screen--lg {
-  #pipeline-title {
-    font-size: 3.5em;
-  }
-  .pipeline-image {
-    width: 250px;
-    height: 250px;
-    min-width: 250px;
-    min-height: 250px;
-  }
 }
 body.screen--md {
-  #pipeline-title {
-    font-size: 2.5em;
-  }
-  .pipeline-image {
-    width: 200px;
-    height: 200px;
-    min-width: 200px;
-    min-height: 200px;
-  }
 }
 body.screen--sm {
-  #pipeline-title {
-    font-size: 1.5em;
-  }
-  .pipeline-image {
-    width: 150px;
-    height: 150px;
-    min-width: 150px;
-    min-height: 150px;
-  }
 }
 body.screen--xs {
-  #pipeline-title {
-    font-size: 1em;
-  }
-  .pipeline-image {
-    width: 100px;
-    height: 100px;
-    min-width: 100px;
-    min-height: 100px;
-  }
 }
 
 /*
@@ -140,13 +117,83 @@ body.screen--xs {
 } */
 </style>
 <template>
-  <div class="column">
-    <div>
-      <q-list>
+  <div class="full-width column q-pa-lg" id="all-status-container">
+    <q-card flat bordered class="status-card q-mb-lg">
+      <q-item>
+        <q-item-section avatar>
+          <q-avatar icon="play_circle_outline" size="48px"> </q-avatar>
+        </q-item-section>
+
+        <q-item-section>
+          <q-item-label>In Progress</q-item-label>
+          <!-- <q-item-label caption>Subhead</q-item-label> -->
+        </q-item-section>
+      </q-item>
+      <q-list class="pipeline-list">
+        <q-item clickable v-for="song of pendingPipelines" v-bind:key="song.id">
+          <div class="column justify-center q-mr-md song-number">
+            <!-- <div v-if="song.id == currentId">
+              <q-spinner></q-spinner>
+            </div> -->
+            <div>
+              {{ song.id }}
+            </div>
+          </div>
+          <q-item-section avatar rounded class="q-mr-md">
+            <!-- <q-img
+              class="rounded-borders"
+              :src="
+                song.album.images.reduce((prev, cur) => {
+                  return (prev.width ?? 0) < (cur.width ?? 0) ? prev : cur;
+                }).url
+              "
+            /> -->
+          </q-item-section>
+
+          <q-item-section>
+            <q-item-label class="song-text-label">{{ song.name }}</q-item-label>
+            <!-- <span class="song-text-label text-grey-8">
+              {{ song.artists.map((a) => a.name).join(', ') }}
+            </span> -->
+          </q-item-section>
+          <q-item-section>
+            <!-- <q-item-label class="song-text-label text-grey-8">{{
+              song.album.name
+            }}</q-item-label> -->
+          </q-item-section>
+
+          <q-item-section side class="q-mr-lg">
+            <q-item-label lines="1">
+              <!-- <span v-bind:class="song.id == currentId ? '' : 'text-grey-8'">
+                {{ millisToMinutesAndSeconds(song.duration_ms) }}
+              </span> -->
+            </q-item-label>
+          </q-item-section>
+        </q-item>
+      </q-list>
+    </q-card>
+
+    <q-card flat bordered class="status-card">
+      <q-item>
+        <q-item-section avatar>
+          <q-avatar
+            icon="play_circle_outline"
+            size="48px"
+
+          >
+          </q-avatar>
+        </q-item-section>
+
+        <q-item-section>
+          <q-item-label>Completed</q-item-label>
+          <!-- <q-item-label caption>Subhead</q-item-label> -->
+        </q-item-section>
+      </q-item>
+      <q-list class="pipeline-list">
         <q-item
           clickable
-          v-for="(song, index) of pipelines"
-          v-bind:key="song.id + '_' + index"
+          v-for="song of completedPipelines"
+          v-bind:key="song.id"
         >
           <div class="column justify-center q-mr-md song-number">
             <!-- <div v-if="song.id == currentId">
@@ -188,6 +235,6 @@ body.screen--xs {
           </q-item-section>
         </q-item>
       </q-list>
-    </div>
+    </q-card>
   </div>
 </template>

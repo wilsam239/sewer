@@ -56,6 +56,56 @@ function createRelease(project?: Project) {
     "Open the dialog, with mode 'release', passing in the playlist id"
   );
 }
+
+function generateColor(name: string): string {
+  // Seed for consistent randomness
+  let seed = 0;
+  for (let i = 0; i < name.length; i++) {
+    seed += name.charCodeAt(i);
+  }
+
+  // Use HSL color model
+  const hue = (seed * 137.5) % 360; // Limit hue to 0-360 degrees
+  const saturation = 50; // Fixed saturation
+  const lightness = 50; // Fixed lightness
+
+  // Convert HSL to RGB
+  const c = (1 - Math.abs(2 * (lightness / 100) - 1)) * (saturation / 100);
+  const x = c * (1 - Math.abs(((hue / 60) % 2) - 1));
+  const m = lightness / 100 - c / 2;
+
+  let r = 0,
+    g = 0,
+    b = 0;
+  if (hue >= 0 && hue < 60) {
+    r = c;
+    g = x;
+  } else if (hue >= 60 && hue < 120) {
+    r = x;
+    g = c;
+  } else if (hue >= 120 && hue < 180) {
+    g = c;
+    b = x;
+  } else if (hue >= 180 && hue < 240) {
+    g = x;
+    b = c;
+  } else if (hue >= 240 && hue < 300) {
+    r = x;
+    b = c;
+  } else if (hue >= 300 && hue < 360) {
+    r = c;
+    b = x;
+  }
+
+  // Convert RGB to hexadecimal
+  const rgbToHex = (x: number): string => {
+    const hex = Math.round(x * 255).toString(16);
+    return hex.length === 1 ? '0' + hex : hex;
+  };
+
+  const hexColor = `#${rgbToHex(r + m)}${rgbToHex(g + m)}${rgbToHex(b + m)}`;
+  return hexColor;
+}
 </script>
 <template>
   <q-input
@@ -93,7 +143,11 @@ function createRelease(project?: Project) {
       v-ripple
       :to="'/dashboard/' + project.id"
     >
-      <q-avatar rounded class="q-mr-md">
+      <q-avatar
+        rounded
+        class="q-mr-md"
+        :style="{ backgroundColor: generateColor(project.name) }"
+      >
         {{ project.name[0] }}
       </q-avatar>
 

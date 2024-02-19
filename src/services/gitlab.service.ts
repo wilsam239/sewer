@@ -225,7 +225,7 @@ class Gitlab {
         mergeMap((groups: Group[]) => {
           return forkJoin(
             groups.map((p) => {
-              return this.api(`/groups/${p.id}/projects`);
+              return this.api(`/groups/${p.id}/projects?archived=false`);
             })
           );
         }),
