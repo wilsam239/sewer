@@ -1,4 +1,5 @@
 import PipelineListVue from 'src/components/dashboard/PipelineList.vue';
+import ProjectViewerVue from 'src/components/dashboard/ProjectViewer.vue';
 import { RouteRecordRaw } from 'vue-router';
 
 const routes: RouteRecordRaw[] = [
@@ -23,7 +24,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: ':id',
         name: 'dashboard_pipeline',
-        component: PipelineListVue,
+        component: ProjectViewerVue,
       },
     ],
   },

@@ -1,0 +1,169 @@
+<script setup lang="ts">
+import { mergeMap } from 'rxjs/internal/operators/mergeMap';
+import { tap } from 'rxjs/internal/operators/tap';
+import { Ref, computed, onMounted, ref, toRaw, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import GeneratorDialog from './GeneratorDialog.vue';
+import SongList from './SongList.vue';
+import { SnackbarService } from 'src/services/snackbar.service';
+import { GitlabService, Pipeline } from 'src/services/gitlab.service';
+
+import { Project } from '@openstapps/gitlab-api';
+import PipelineList from './PipelineList.vue';
+
+const gitlab = GitlabService;
+const route = useRoute();
+const router = useRouter();
+const project: Ref<Project | undefined> = ref(undefined);
+
+const pipelines: Ref<Pipeline[]> = ref([]);
+
+const loading = ref(true);
+
+const statusMap = {
+  'In Progress': [
+    'created',
+    'waiting_for_resource',
+    'preparing',
+    'pending',
+    'scheduled',
+    'running',
+  ],
+  Complete: ['success', 'failed', 'canceled', 'skipped', 'manual'],
+};
+const statuses = [
+  'created',
+  'waiting_for_resource',
+  'preparing',
+  'pending',
+  'scheduled',
+  'running',
+  'success',
+  'failed',
+  'canceled',
+  'skipped',
+  'manual',
+];
+const statusIcon = {
+  'In Progress': 'play_circle_outline',
+  pending: 'pause_circle_outline',
+  running: 'play_circle_outline',
+  Complete: 'stop_circle',
+};
+
+function fetchProject(id: number) {
+  gitlab
+    .fetchProject(id)
+    .pipe(
+      tap((pl) => {
+        project.value = pl;
+      }),
+      mergeMap((playlist) => {
+        return gitlab.fetchProjectPipelines(playlist);
+      }),
+      tap((songs) => {
+        // songs.forEach((s, i) => {
+        //   s.status = statuses[i % statuses.length];
+        // });
+        pipelines.value = songs;
+        gitlab.loading = false;
+      })
+    )
+    .subscribe();
+}
+
+function checkRoute() {
+  console.log('Route id: ' + route.params['id']);
+  gitlab.loading = true;
+  if (route.params['id'] !== 'all') {
+    fetchProject(parseInt(route.params['id'] as string, 10));
+  } else if (route.params['id'] !== undefined) {
+    gitlab
+      .fetchPipelines()
+      .pipe(
+        tap((songs) => {
+          pipelines.value = songs;
+          gitlab.loading = false;
+        })
+      )
+      .subscribe();
+  }
+}
+const pendingPipelines = computed(() =>
+  pipelines.value.filter((p) => statusMap['In Progress'].includes(p.status))
+);
+const completedPipelines = computed(() =>
+  pipelines.value.filter((p) => statusMap['Complete'].includes(p.status))
+);
+
+watch(
+  route,
+  (r) => {
+    checkRoute();
+  },
+  {}
+);
+
+onMounted(() => {
+  checkRoute();
+});
+</script>
+<style lang="scss">
+.status-card {
+  min-height: 250px;
+}
+body.screen--lg {
+}
+body.screen--md {
+}
+body.screen--sm {
+}
+body.screen--xs {
+}
+
+/*
+#pipeline-title {
+  width: 75%;
+}
+
+#pipeline-title,
+#pipeline-description {
+  max-width: 75%;
+} */
+</style>
+<template>
+  <div class="full-width column q-pa-lg" id="all-status-container">
+    <q-card flat bordered class="status-card q-mb-lg">
+      <q-item>
+        <q-item-section avatar>
+          <q-avatar icon="play_circle_outline" size="48px"> </q-avatar>
+        </q-item-section>
+
+        <q-item-section>
+          <q-item-label>In Progress</q-item-label>
+          <!-- <q-item-label caption>Subhead</q-item-label> -->
+        </q-item-section>
+      </q-item>
+      <PipelineList :pipelines="pendingPipelines" :mini="false"></PipelineList>
+    </q-card>
+
+    <q-card flat bordered class="status-card">
+      <q-item>
+        <q-item-section avatar>
+          <q-avatar icon="play_circle_outline" size="48px"> </q-avatar>
+        </q-item-section>
+
+        <q-item-section>
+          <q-item-label>Completed</q-item-label>
+          <!-- <q-item-label caption>Subhead</q-item-label> -->
+        </q-item-section>
+      </q-item>
+      <q-item>
+        <PipelineList
+          :pipelines="completedPipelines"
+          :mini="false"
+        ></PipelineList>
+      </q-item>
+    </q-card>
+  </div>
+</template>
