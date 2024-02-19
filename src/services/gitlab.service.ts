@@ -56,6 +56,8 @@ class Gitlab {
   private projects: Project[] = [];
   private pipelines: Pipeline[] = [];
 
+  readonly pipelinesUpdated = new BehaviorSubject<Pipeline[]>([]);
+
   constructor() {
     const autoRefresh = () => {
       if (this.userSession.refresh_token) {
@@ -81,7 +83,7 @@ class Gitlab {
       if (this.isLoggedIn) {
         this.poll();
       }
-    }, 50000);
+    }, this.minutesToMilliseconds(1));
   }
 
   poll() {
@@ -90,16 +92,19 @@ class Gitlab {
       (p) => !['success', 'failed', 'canceled', 'skipped'].includes(p.status)
     );
 
-    queue.forEach((p) => {
-      this.fetchPipeline(p.id, p.project_id)
-        .pipe(
-          tap((resp) => {
-            let existing = this.pipelines.find((ep) => ep.id === p.id);
-            existing = resp;
-          })
-        )
-        .subscribe();
-    });
+    // queue.forEach((p) => {
+    //   this.fetchPipeline(p.id, p.project_id)
+    //     .pipe(
+    //       tap((resp) => {
+    //         let existing = this.pipelines.find((ep) => ep.id === p.id);
+    //         existing = resp;
+    //       })
+    //     )
+    //     .subscribe();
+    // });
+
+    console.info('Polling for updates...');
+    this.fetchPipelines().subscribe();
   }
 
   minutesToMilliseconds(mins: number) {
@@ -300,9 +305,60 @@ class Gitlab {
         );
         console.log(pipelines);
         this.pipelines = pipelines;
+        this.pipelinesUpdated.next(pipelines);
         console.log(this.pipelines);
       })
     );
+  }
+
+  generateColor(name: string): string {
+    // Seed for consistent randomness
+    let seed = 0;
+    for (let i = 0; i < name.length; i++) {
+      seed += name.charCodeAt(i);
+    }
+
+    // Use HSL color model
+    const hue = (seed * 137.5) % 360; // Limit hue to 0-360 degrees
+    const saturation = 50; // Fixed saturation
+    const lightness = 50; // Fixed lightness
+
+    // Convert HSL to RGB
+    const c = (1 - Math.abs(2 * (lightness / 100) - 1)) * (saturation / 100);
+    const x = c * (1 - Math.abs(((hue / 60) % 2) - 1));
+    const m = lightness / 100 - c / 2;
+
+    let r = 0,
+      g = 0,
+      b = 0;
+    if (hue >= 0 && hue < 60) {
+      r = c;
+      g = x;
+    } else if (hue >= 60 && hue < 120) {
+      r = x;
+      g = c;
+    } else if (hue >= 120 && hue < 180) {
+      g = c;
+      b = x;
+    } else if (hue >= 180 && hue < 240) {
+      g = x;
+      b = c;
+    } else if (hue >= 240 && hue < 300) {
+      r = x;
+      b = c;
+    } else if (hue >= 300 && hue < 360) {
+      r = c;
+      b = x;
+    }
+
+    // Convert RGB to hexadecimal
+    const rgbToHex = (x: number): string => {
+      const hex = Math.round(x * 255).toString(16);
+      return hex.length === 1 ? '0' + hex : hex;
+    };
+
+    const hexColor = `#${rgbToHex(r + m)}${rgbToHex(g + m)}${rgbToHex(b + m)}`;
+    return hexColor;
   }
 
   /**

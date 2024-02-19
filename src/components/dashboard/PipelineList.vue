@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Project } from '@openstapps/gitlab-api';
+import { filter, tap } from 'rxjs';
 import { GitlabService, Pipeline } from 'src/services/gitlab.service';
 import { onMounted, ref } from 'vue';
 
@@ -87,11 +88,11 @@ function getTimeSince(updatedAt: string) {
   const days = Math.floor(hours / 24);
 
   if (days > 0) {
-    return `Updated ${days} day${days > 1 ? 's' : ''} ago`;
+    return `${days} day${days > 1 ? 's' : ''} ago`;
   } else if (hours > 0) {
-    return `Updated ${hours} hour${hours > 1 ? 's' : ''} ago`;
+    return `${hours} hour${hours > 1 ? 's' : ''} ago`;
   } else if (minutes > 0) {
-    return `Updated ${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+    return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
   } else {
     return 'Just now';
   }
@@ -216,7 +217,12 @@ body.screen--xs {
             </span> -->
         </q-item-section>
         <q-item-section>
-          {{ getTimeSince(song.updated_at) }}
+          <q-item-label lines="1">
+            Updated {{ getTimeSince(song.updated_at) }}
+          </q-item-label>
+          <q-item-label lines="1">
+            Created {{ getTimeSince(song.created_at) }}
+          </q-item-label>
           <!-- <q-item-label class="song-text-label text-grey-8">{{
               song.album.name
             }}</q-item-label> -->

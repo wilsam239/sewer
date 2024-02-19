@@ -54,14 +54,9 @@
 
 <script setup lang="ts">
 import { tap } from 'rxjs/operators';
-import NowPlaying from 'src/components/dashboard/NowPlaying.vue';
-import PlaybackUpdater from 'src/components/dashboard/PlaybackUpdater.vue';
-import RecentlyPlayed from 'src/components/dashboard/RecentlyPlayed.vue';
-import BingoSettings from 'src/components/dashboard/BingoSettings.vue';
+import ProjectList from 'src/components/dashboard/ProjectList.vue';
 import { GitlabService } from 'src/services/gitlab.service';
 import { onMounted, ref } from 'vue';
-import ProjectList from 'src/components/dashboard/ProjectList.vue';
-import { route } from 'quasar/wrappers';
 
 const gitlab = GitlabService;
 const expiresIn = ref(0);

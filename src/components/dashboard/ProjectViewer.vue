@@ -10,6 +10,7 @@ import { GitlabService, Pipeline } from 'src/services/gitlab.service';
 
 import { Project } from '@openstapps/gitlab-api';
 import PipelineList from './PipelineList.vue';
+import { filter } from 'rxjs';
 
 const gitlab = GitlabService;
 const route = useRoute();
@@ -78,6 +79,7 @@ function checkRoute() {
   if (route.params['id'] !== 'all') {
     fetchProject(parseInt(route.params['id'] as string, 10));
   } else if (route.params['id'] !== undefined) {
+    project.value = undefined;
     gitlab
       .fetchPipelines()
       .pipe(
@@ -106,6 +108,12 @@ watch(
 
 onMounted(() => {
   checkRoute();
+  gitlab.pipelinesUpdated.pipe(
+    filter((p) => p.length > 0),
+    tap((updated) => {
+      pipelines.value = updated;
+    })
+  );
 });
 </script>
 <style lang="scss">
@@ -132,11 +140,40 @@ body.screen--xs {
 } */
 </style>
 <template>
+  <div
+    id="project-header"
+    class="q-ml-lg q-mr-lg q-mt-lg row content-center items-center justify-between"
+  >
+    <div id="project-title" class="row content-center items-center">
+      <q-avatar
+        rounded
+        class="q-mr-md"
+        :style="{
+          backgroundColor: gitlab.generateColor(project?.name ?? 'all'),
+        }"
+      >
+        {{ (project?.name[0] ?? 'a').toUpperCase() }}
+      </q-avatar>
+      <div class="text-h5 text-weight-bold">
+        {{ project?.name ?? 'All Projects' }}
+      </div>
+    </div>
+    <div id="project-actions" class="row content-center items-center">
+      <q-btn outline class="q-mr-lg">
+        <q-icon name="far fa-plus" class="q-mr-sm" size="xs"></q-icon>
+        New Pipeline
+      </q-btn>
+      <q-btn outline>
+        <q-icon name="fas fa-tag" class="q-mr-sm" size="xs"></q-icon>
+        New Releae
+      </q-btn>
+    </div>
+  </div>
   <div class="full-width column q-pa-lg" id="all-status-container">
     <q-card flat bordered class="status-card q-mb-lg">
       <q-item>
         <q-item-section avatar>
-          <q-avatar icon="play_circle_outline" size="48px"> </q-avatar>
+          <q-avatar icon="far fa-circle-play" size="lg"> </q-avatar>
         </q-item-section>
 
         <q-item-section>
@@ -154,7 +191,7 @@ body.screen--xs {
     <q-card flat bordered class="status-card">
       <q-item>
         <q-item-section avatar>
-          <q-avatar icon="play_circle_outline" size="48px"> </q-avatar>
+          <q-avatar icon="far fa-circle-stop" size="lg"> </q-avatar>
         </q-item-section>
 
         <q-item-section>
