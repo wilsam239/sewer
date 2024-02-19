@@ -7,25 +7,50 @@ import GeneratorDialog from './GeneratorDialog.vue';
 import SongList from './SongList.vue';
 import { SnackbarService } from 'src/services/snackbar.service';
 import { GitlabService, Pipeline } from 'src/services/gitlab.service';
-import { pipeline } from 'stream';
+
+import { Project } from '@openstapps/gitlab-api';
 
 const gitlab = GitlabService;
 const route = useRoute();
+const project: Ref<Project | undefined> = ref(undefined);
 
 const pipelines: Ref<Pipeline[]> = ref([]);
 
 const loading = ref(true);
 
-onMounted(() => {
+function fetchProject(id: number) {
   gitlab
-    .fetchPipelines()
+    .fetchProject(id)
     .pipe(
+      tap((pl) => {
+        project.value = pl;
+      }),
+      mergeMap((playlist) => {
+        return gitlab.fetchProjectPipelines(playlist);
+      }),
       tap((songs) => {
         pipelines.value = songs;
         gitlab.loading = false;
       })
     )
     .subscribe();
+}
+
+watch(route, (r) => {
+  if (r.params['id'] !== 'all') {
+    gitlab.loadingState.next(true);
+    fetchProject(parseInt(r.params['id'] as string, 10));
+  } else {
+    gitlab
+      .fetchPipelines()
+      .pipe(
+        tap((songs) => {
+          pipelines.value = songs;
+          gitlab.loading = false;
+        })
+      )
+      .subscribe();
+  }
 });
 </script>
 <style lang="scss">

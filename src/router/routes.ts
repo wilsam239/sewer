@@ -17,7 +17,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       {
-        path: 'all',
+        path: ':id',
         name: 'dashboard_pipeline',
         component: PipelineListVue,
       },

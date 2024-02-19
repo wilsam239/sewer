@@ -18,10 +18,9 @@
       </q-toolbar>
     </q-header>
 
-    <!-- <q-drawer show-if-above v-model="leftDrawerOpen" side="left" bordered>
-
-      <playlist-list></playlist-list>
-    </q-drawer> -->
+    <q-drawer show-if-above v-model="leftDrawerOpen" side="left" bordered>
+      <project-list></project-list>
+    </q-drawer>
 
     <!-- <q-drawer show-if-above v-model="historyDrawerOpen" side="right" bordered>
 
@@ -57,11 +56,11 @@
 import { tap } from 'rxjs/operators';
 import NowPlaying from 'src/components/dashboard/NowPlaying.vue';
 import PlaybackUpdater from 'src/components/dashboard/PlaybackUpdater.vue';
-import PlaylistList from 'src/components/dashboard/PlaylistList.vue';
 import RecentlyPlayed from 'src/components/dashboard/RecentlyPlayed.vue';
 import BingoSettings from 'src/components/dashboard/BingoSettings.vue';
 import { GitlabService } from 'src/services/gitlab.service';
 import { onMounted, ref } from 'vue';
+import ProjectList from 'src/components/dashboard/ProjectList.vue';
 
 const gitlab = GitlabService;
 const expiresIn = ref(0);

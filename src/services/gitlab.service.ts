@@ -186,6 +186,19 @@ class Gitlab {
     );
   }
 
+  fetchProject(id: number) {
+    const found = this.projects.find((p) => p.id !== id);
+    if (this.projects.length === 0 || !found) {
+      return this.api(`/projects/${id}`).pipe(
+        tap((project: Project) => {
+          this.projects.push(project);
+        })
+      );
+    } else {
+      return of(found);
+    }
+  }
+
   fetchProjects() {
     if (this.projects.length === 0) {
       return this.api('/groups').pipe(
@@ -204,6 +217,10 @@ class Gitlab {
     } else {
       return of(this.projects);
     }
+  }
+
+  fetchProjectPipelines(p: Project) {
+    return this.api(`/projects/${p.id}/pipelines`);
   }
 
   fetchPipelines() {
