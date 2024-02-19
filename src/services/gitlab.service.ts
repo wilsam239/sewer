@@ -1,3 +1,4 @@
+import { Group, Project } from '@openstapps/gitlab-api';
 import {
   BehaviorSubject,
   Observable,
@@ -11,7 +12,6 @@ import {
   throwError,
 } from 'rxjs';
 import { SnackbarService } from './snackbar.service';
-import { Group, Project } from '@openstapps/gitlab-api';
 
 const SCOPE = ['api'];
 
@@ -54,6 +54,7 @@ class Gitlab {
   private actions: Set<string> = new Set();
 
   private projects: Project[] = [];
+  private pipelines: Pipeline[] = [];
 
   constructor() {
     const autoRefresh = () => {
@@ -78,9 +79,27 @@ class Gitlab {
 
     setInterval(() => {
       if (this.isLoggedIn) {
-        this.fetchPipelines().subscribe();
+        this.poll();
       }
     }, 50000);
+  }
+
+  poll() {
+    // created, waiting_for_resource, preparing, pending, running, success, failed, canceled, skipped, manual, scheduled
+    const queue = this.pipelines.filter(
+      (p) => !['success', 'failed', 'canceled', 'skipped'].includes(p.status)
+    );
+
+    queue.forEach((p) => {
+      this.fetchPipeline(p.id, p.project_id)
+        .pipe(
+          tap((resp) => {
+            let existing = this.pipelines.find((ep) => ep.id === p.id);
+            existing = resp;
+          })
+        )
+        .subscribe();
+    });
   }
 
   minutesToMilliseconds(mins: number) {
@@ -187,7 +206,7 @@ class Gitlab {
   }
 
   fetchProject(id: number) {
-    const found = this.projects.find((p) => p.id !== id);
+    const found = this.projects.find((p) => p.id === id);
     if (this.projects.length === 0 || !found) {
       return this.api(`/projects/${id}`).pipe(
         tap((project: Project) => {
@@ -195,6 +214,7 @@ class Gitlab {
         })
       );
     } else {
+      console.info(`Project ${id} already exists`);
       return of(found);
     }
   }
@@ -220,11 +240,44 @@ class Gitlab {
   }
 
   fetchProjectPipelines(p: Project) {
-    return this.api(`/projects/${p.id}/pipelines`);
+    return this.api(`/projects/${p.id}/pipelines`).pipe(
+      map((resp: Pipeline[]) => {
+        const existing = this.pipelines.filter(
+          (p) => `${p.project_id}` === `${p.id}`
+        );
+
+        if (resp.length === 0) {
+          console.log(this.pipelines);
+          console.info(
+            `Pipeline data unchanged - using existing data for ${p.id}`
+          );
+          console.log(existing);
+          return existing;
+        } else {
+          console.info('Pipeline data changed - using new data.');
+          const unchanged = existing.filter(
+            (p) => !resp.some((r) => r.id === p.id)
+          );
+          const result = unchanged.concat(resp);
+
+          result.sort(
+            (a, b) =>
+              new Date(b.created_at).getTime() -
+              new Date(a.created_at).getTime()
+          );
+
+          console.log(result);
+          return result;
+        }
+      })
+    );
+  }
+
+  fetchPipeline(id: number, project: number): Observable<Pipeline> {
+    return this.api(`/projects/${project}/pipelines/${id}`);
   }
 
   fetchPipelines() {
-    // TODO
     return this.fetchProjects().pipe(
       map((projects) => {
         return projects.filter((p) => !p.archived);
@@ -242,6 +295,8 @@ class Gitlab {
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
         console.log(pipelines);
+        this.pipelines = pipelines;
+        console.log(this.pipelines);
       })
     );
   }

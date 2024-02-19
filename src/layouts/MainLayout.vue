@@ -61,6 +61,7 @@ import BingoSettings from 'src/components/dashboard/BingoSettings.vue';
 import { GitlabService } from 'src/services/gitlab.service';
 import { onMounted, ref } from 'vue';
 import ProjectList from 'src/components/dashboard/ProjectList.vue';
+import { route } from 'quasar/wrappers';
 
 const gitlab = GitlabService;
 const expiresIn = ref(0);

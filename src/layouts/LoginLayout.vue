@@ -32,7 +32,7 @@ onMounted(() => {
       ss.refreshToken()
         .pipe(
           tap(() => {
-            router.push('/dashboard');
+            router.push('/dashboard/all');
             loading.value = false;
           })
         )
@@ -44,7 +44,7 @@ onMounted(() => {
   clientID.value = ss.clientID;
   // clientSecret.value = ss.clientSecret
   if (ss.isLoggedIn) {
-    router.push('/dashboard');
+    router.push('/dashboard/all');
   }
 });
 

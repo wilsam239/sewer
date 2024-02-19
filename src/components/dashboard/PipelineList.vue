@@ -2,7 +2,7 @@
 import { mergeMap } from 'rxjs/internal/operators/mergeMap';
 import { tap } from 'rxjs/internal/operators/tap';
 import { Ref, onMounted, ref, toRaw, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import GeneratorDialog from './GeneratorDialog.vue';
 import SongList from './SongList.vue';
 import { SnackbarService } from 'src/services/snackbar.service';
@@ -12,6 +12,7 @@ import { Project } from '@openstapps/gitlab-api';
 
 const gitlab = GitlabService;
 const route = useRoute();
+const router = useRouter();
 const project: Ref<Project | undefined> = ref(undefined);
 
 const pipelines: Ref<Pipeline[]> = ref([]);
@@ -36,11 +37,12 @@ function fetchProject(id: number) {
     .subscribe();
 }
 
-watch(route, (r) => {
-  if (r.params['id'] !== 'all') {
-    gitlab.loadingState.next(true);
-    fetchProject(parseInt(r.params['id'] as string, 10));
-  } else {
+function checkRoute() {
+  console.log('Route id: ' + route.params['id']);
+  gitlab.loading = true;
+  if (route.params['id'] !== 'all') {
+    fetchProject(parseInt(route.params['id'] as string, 10));
+  } else if (route.params['id'] !== undefined) {
     gitlab
       .fetchPipelines()
       .pipe(
@@ -51,6 +53,17 @@ watch(route, (r) => {
       )
       .subscribe();
   }
+}
+watch(
+  route,
+  (r) => {
+    checkRoute();
+  },
+  {}
+);
+
+onMounted(() => {
+  checkRoute();
 });
 </script>
 <style lang="scss">
