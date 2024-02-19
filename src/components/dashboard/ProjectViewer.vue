@@ -144,7 +144,11 @@ body.screen--xs {
           <!-- <q-item-label caption>Subhead</q-item-label> -->
         </q-item-section>
       </q-item>
-      <PipelineList :pipelines="pendingPipelines" :mini="false"></PipelineList>
+      <PipelineList
+        :pipelines="pendingPipelines"
+        :mini="false"
+        :project="project"
+      ></PipelineList>
     </q-card>
 
     <q-card flat bordered class="status-card">
@@ -162,6 +166,7 @@ body.screen--xs {
         <PipelineList
           :pipelines="completedPipelines"
           :mini="false"
+          :project="project"
         ></PipelineList>
       </q-item>
     </q-card>

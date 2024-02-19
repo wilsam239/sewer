@@ -104,6 +104,9 @@ function getRefIcon(p: Pipeline) {
   return isRefMatch(p.ref) ? 'fas fa-tag' : 'fas fa-code-branch';
 }
 
+function getPipelineProject(p: Pipeline) {
+  return gitlab.findProject(p.project_id)?.name ?? 'Unknown';
+}
 onMounted(() => {
   /*
   {
@@ -195,7 +198,14 @@ body.screen--xs {
             {{ statusMap[song.status].title }}
           </div>
         </q-item-section>
-
+        <q-item-section v-if="!project">
+          <q-item-label class="pipeline-ref-label">
+            {{ getPipelineProject(song) }}
+          </q-item-label>
+          <!-- <span class="song-text-label text-grey-8">
+              {{ song.artists.map((a) => a.name).join(', ') }}
+            </span> -->
+        </q-item-section>
         <q-item-section>
           <q-item-label class="pipeline-ref-label">
             <q-icon class="ref-icon" :name="getRefIcon(song)"></q-icon>
@@ -213,11 +223,15 @@ body.screen--xs {
         </q-item-section>
 
         <q-item-section side class="q-mr-lg">
-          <q-item-label lines="1">
-            <!-- <span v-bind:class="song.id == currentId ? '' : 'text-grey-8'">
-                {{ millisToMinutesAndSeconds(song.duration_ms) }}
-              </span> -->
-          </q-item-label>
+          <q-btn
+            flat
+            round
+            color="primary"
+            icon="fas fa-arrow-up-right-from-square"
+            size="sm"
+            :href="song.web_url"
+            target="_blank"
+          />
         </q-item-section>
       </q-item>
     </q-list>

@@ -205,6 +205,10 @@ class Gitlab {
     );
   }
 
+  findProject(id: number) {
+    return this.projects.find((p) => p.id === id);
+  }
+
   fetchProject(id: number) {
     const found = this.projects.find((p) => p.id === id);
     if (this.projects.length === 0 || !found) {
