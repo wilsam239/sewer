@@ -165,7 +165,7 @@ body.screen--xs {
       </q-btn>
       <q-btn outline>
         <q-icon name="fas fa-tag" class="q-mr-sm" size="xs"></q-icon>
-        New Releae
+        New Release
       </q-btn>
     </div>
   </div>

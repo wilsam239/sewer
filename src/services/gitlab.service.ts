@@ -67,7 +67,7 @@ class Gitlab {
     };
 
     this.userSession = JSON.parse(
-      localStorage.getItem('userSession') ??
+      localStorage.getItem('sewer_userSession') ??
         JSON.stringify({
           client_id: '',
         })
@@ -116,7 +116,7 @@ class Gitlab {
       client_id: this.clientID,
     };
 
-    localStorage.setItem('userSession', JSON.stringify(this.userSession));
+    localStorage.setItem('sewer_userSession', JSON.stringify(this.userSession));
   }
 
   /**
@@ -160,7 +160,7 @@ class Gitlab {
     const challenge = await this.generateCodeChallenge(verifier);
 
     const state = this.generateState();
-    localStorage.setItem('verifier', verifier);
+    localStorage.setItem('sewer_verifier', verifier);
     const params = new URLSearchParams();
     params.append('client_id', this.clientID);
     params.append('response_type', 'code');
@@ -182,7 +182,7 @@ class Gitlab {
    * @returns
    */
   loginWithCode(code: string) {
-    const verifier = localStorage.getItem('verifier');
+    const verifier = localStorage.getItem('sewer_verifier');
     const params = new URLSearchParams();
     const state = this.generateState();
 
@@ -590,7 +590,7 @@ class Gitlab {
 
   /* set me(u: SpotifyApi.UserObjectPrivate | undefined) {
     this.userSession.user = u;
-    localStorage.setItem('userSession', JSON.stringify(this.userSession));
+    localStorage.setItem('sewer_userSession', JSON.stringify(this.userSession));
   } */
 
   get clientID() {
@@ -599,7 +599,7 @@ class Gitlab {
 
   set clientID(id: string) {
     this.userSession.client_id = id;
-    localStorage.setItem('userSession', JSON.stringify(this.userSession));
+    localStorage.setItem('sewer_userSession', JSON.stringify(this.userSession));
   }
 
   get expiry() {
@@ -607,12 +607,12 @@ class Gitlab {
   }
   set expiry(expires_in: number) {
     this.userSession.expiry = Date.now() + expires_in * 1000;
-    localStorage.setItem('userSession', JSON.stringify(this.userSession));
+    localStorage.setItem('sewer_userSession', JSON.stringify(this.userSession));
   }
 
   set access_token(at: string) {
     this.userSession.access_token = at;
-    localStorage.setItem('userSession', JSON.stringify(this.userSession));
+    localStorage.setItem('sewer_userSession', JSON.stringify(this.userSession));
   }
   get access_token() {
     return this.userSession.access_token ?? '';
@@ -620,7 +620,7 @@ class Gitlab {
 
   set refresh_token(at: string) {
     this.userSession.refresh_token = at;
-    localStorage.setItem('userSession', JSON.stringify(this.userSession));
+    localStorage.setItem('sewer_userSession', JSON.stringify(this.userSession));
   }
 
   get refresh_token() {
