@@ -8,6 +8,7 @@ interface StatusInfo {
   icon: string;
   title: string;
   colour: string;
+  updatedText: string;
 }
 
 const gitlab = GitlabService;
@@ -24,56 +25,67 @@ const statusMap: { [key: string]: StatusInfo } = {
     icon: 'far fa-edit',
     title: 'Created',
     colour: 'rgba(255, 87, 51, 0.7)',
+    updatedText: 'Created',
   },
   waiting_for_resource: {
     icon: 'far fa-hourglass-half',
     title: 'Waiting',
     colour: 'rgba(51, 255, 87, 0.7)',
+    updatedText: 'Waiting since',
   },
   preparing: {
     icon: 'far fa-list-alt',
     title: 'Preparing',
     colour: 'rgba(87, 51, 255, 0.7)',
+    updatedText: 'Preparing since',
   },
   pending: {
     icon: 'far fa-pause-circle',
     title: 'Pending',
     colour: 'rgba(51, 255, 197, 0.7)',
+    updatedText: 'Pending since',
   },
   scheduled: {
     icon: 'far fa-calendar-alt',
     title: 'Scheduled',
     colour: 'rgba(51, 197, 255, 0.7)',
+    updatedText: 'Scheduled since',
   },
   running: {
     icon: 'far fa-play-circle',
     title: 'Running',
     colour: 'rgba(255, 51, 197, 0.7)',
+    updatedText: 'Running since',
   },
   success: {
     icon: 'far fa-check-circle',
     title: 'Success',
     colour: 'rgba(51, 255, 51, 0.7)',
+    updatedText: 'Completed',
   },
   failed: {
     icon: 'far fa-times-circle',
     title: 'Failed',
     colour: 'rgba(255, 51, 51, 0.7)',
+    updatedText: 'Failed',
   },
   canceled: {
     icon: 'far fa-times-circle',
     title: 'Canceled',
     colour: 'rgba(216, 216, 216, 0.7)',
+    updatedText: 'Canceled',
   },
   skipped: {
     icon: 'far fa-arrow-circle-right',
     title: 'Skipped',
     colour: 'rgba(153, 153, 153, 0.7)',
+    updatedText: 'Skipped',
   },
   manual: {
     icon: 'far fa-file-alt',
     title: 'Manual',
     colour: 'rgba(255, 165, 0, 0.7)',
+    updatedText: 'Updated',
   },
 };
 
@@ -205,7 +217,9 @@ body.screen--xs {
             </span> -->
           </q-item-section>
           <q-item-section>
-            <q-item-label lines="1"> Updated {{ getTimeSince(song.updated_at) }} </q-item-label>
+            <q-item-label lines="1">
+              {{ statusMap[song.status].updatedText }} {{ getTimeSince(song.updated_at) }}
+            </q-item-label>
             <q-item-label lines="1"> Created {{ getTimeSince(song.created_at) }} </q-item-label>
             <!-- <q-item-label class="song-text-label text-grey-8">{{
               song.album.name
