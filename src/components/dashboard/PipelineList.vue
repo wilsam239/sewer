@@ -99,8 +99,7 @@ function getTimeSince(updatedAt: string) {
 }
 
 function getRefIcon(p: Pipeline) {
-  const isRefMatch = (ref: string): boolean =>
-    /^(v?\d+\.\d+\.\d+)$/.test(ref) && !ref.includes('/');
+  const isRefMatch = (ref: string): boolean => /^(v?\d+\.\d+\.\d+)$/.test(ref) && !ref.includes('/');
 
   return isRefMatch(p.ref) ? 'fas fa-tag' : 'fas fa-code-branch';
 }
@@ -172,77 +171,62 @@ body.screen--xs {
 </style>
 <template>
   <div class="full-width column q-pa-lg">
-    <q-list class="pipeline-list" v-if="pipelines.length > 0">
-      <q-item
-        v-for="song of pipelines"
-        v-bind:key="song.id"
-        class="pipeline-item"
-      >
-        <div class="column justify-center q-mr-md pipeline-id">
-          <div>#{{ song.id }}</div>
-        </div>
-        <q-item-section class="q-mr-md">
-          <div
-            class="pipeline-status row no-wrap justify-start items-center content-center"
-            :style="{ backgroundColor: statusMap[song.status].colour }"
-          >
-            <q-icon
-              :name="statusMap[song.status].icon"
-              class="status-icon"
-              v-if="song.status !== 'running'"
-            ></q-icon
-            ><q-icon
-              name="fas fa-spinner"
-              class="fa-spin status-icon"
-              v-else
-            ></q-icon>
-            {{ statusMap[song.status].title }}
+    <q-inner-loading :showing="gitlab.loading"><q-spinner></q-spinner></q-inner-loading>
+    <div v-if="!gitlab.loading">
+      <q-list class="pipeline-list" v-if="pipelines.length > 0">
+        <q-item v-for="song of pipelines" v-bind:key="song.id" class="pipeline-item">
+          <div class="column justify-center q-mr-md pipeline-id">
+            <div>#{{ song.id }}</div>
           </div>
-        </q-item-section>
-        <q-item-section v-if="!project">
-          <q-item-label class="pipeline-ref-label">
-            {{ getPipelineProject(song) }}
-          </q-item-label>
-          <!-- <span class="song-text-label text-grey-8">
+          <q-item-section class="q-mr-md">
+            <div
+              class="pipeline-status row no-wrap justify-start items-center content-center"
+              :style="{ backgroundColor: statusMap[song.status].colour }">
+              <q-icon :name="statusMap[song.status].icon" class="status-icon" v-if="song.status !== 'running'"></q-icon>
+              <q-icon name="fas fa-spinner" class="fa-spin status-icon" v-else></q-icon>
+              {{ statusMap[song.status].title }}
+            </div>
+          </q-item-section>
+          <q-item-section v-if="!project">
+            <q-item-label class="pipeline-ref-label">
+              {{ getPipelineProject(song) }}
+            </q-item-label>
+            <!-- <span class="song-text-label text-grey-8">
               {{ song.artists.map((a) => a.name).join(', ') }}
             </span> -->
-        </q-item-section>
-        <q-item-section>
-          <q-item-label class="pipeline-ref-label">
-            <q-icon class="ref-icon" :name="getRefIcon(song)"></q-icon>
-            {{ song.ref }}
-          </q-item-label>
-          <!-- <span class="song-text-label text-grey-8">
+          </q-item-section>
+          <q-item-section>
+            <q-item-label class="pipeline-ref-label">
+              <q-icon class="ref-icon" :name="getRefIcon(song)"></q-icon>
+              {{ song.ref }}
+            </q-item-label>
+            <!-- <span class="song-text-label text-grey-8">
               {{ song.artists.map((a) => a.name).join(', ') }}
             </span> -->
-        </q-item-section>
-        <q-item-section>
-          <q-item-label lines="1">
+          </q-item-section>
+          <q-item-section>
+            <!-- <q-item-label lines="1">
             Updated {{ getTimeSince(song.updated_at) }}
-          </q-item-label>
-          <q-item-label lines="1">
-            Created {{ getTimeSince(song.created_at) }}
-          </q-item-label>
-          <!-- <q-item-label class="song-text-label text-grey-8">{{
+          </q-item-label> -->
+            <q-item-label lines="1"> Created {{ getTimeSince(song.created_at) }} </q-item-label>
+            <!-- <q-item-label class="song-text-label text-grey-8">{{
               song.album.name
             }}</q-item-label> -->
-        </q-item-section>
+          </q-item-section>
 
-        <q-item-section side class="q-mr-lg">
-          <q-btn
-            flat
-            round
-            color="primary"
-            icon="fas fa-arrow-up-right-from-square"
-            size="sm"
-            :href="song.web_url"
-            target="_blank"
-          />
-        </q-item-section>
-      </q-item>
-    </q-list>
-    <div class="row justify-center content-center items-center" v-else>
-      No pipelines to show
+          <q-item-section side class="q-mr-lg">
+            <q-btn
+              flat
+              round
+              color="primary"
+              icon="fas fa-arrow-up-right-from-square"
+              size="sm"
+              :href="song.web_url"
+              target="_blank" />
+          </q-item-section>
+        </q-item>
+      </q-list>
+      <div class="row justify-center content-center items-center" v-else>No pipelines to show</div>
     </div>
   </div>
 </template>

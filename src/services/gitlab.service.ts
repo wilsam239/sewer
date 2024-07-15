@@ -1,16 +1,5 @@
 import { Group, Project } from '@openstapps/gitlab-api';
-import {
-  BehaviorSubject,
-  Observable,
-  catchError,
-  forkJoin,
-  from,
-  map,
-  mergeMap,
-  of,
-  tap,
-  throwError,
-} from 'rxjs';
+import { BehaviorSubject, Observable, catchError, forkJoin, from, map, mergeMap, of, tap, throwError } from 'rxjs';
 import { SnackbarService } from './snackbar.service';
 
 const SCOPE = ['api'];
@@ -88,9 +77,7 @@ class Gitlab {
 
   poll() {
     // created, waiting_for_resource, preparing, pending, running, success, failed, canceled, skipped, manual, scheduled
-    const queue = this.pipelines.filter(
-      (p) => !['success', 'failed', 'canceled', 'skipped'].includes(p.status)
-    );
+    const queue = this.pipelines.filter((p) => !['success', 'failed', 'canceled', 'skipped'].includes(p.status));
 
     // queue.forEach((p) => {
     //   this.fetchPipeline(p.id, p.project_id)
@@ -126,8 +113,7 @@ class Gitlab {
    */
   private generateCodeVerifier(length: number) {
     let text = '';
-    const possible =
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
     for (let i = 0; i < length; i++) {
       text += possible.charAt(Math.floor(Math.random() * possible.length));
@@ -164,10 +150,7 @@ class Gitlab {
     const params = new URLSearchParams();
     params.append('client_id', this.clientID);
     params.append('response_type', 'code');
-    params.append(
-      'redirect_uri',
-      `${location.protocol}//${location.host}/sewer/login`
-    );
+    params.append('redirect_uri', `${location.protocol}//${location.host}/sewer/login`);
     params.append('scope', SCOPE.join(' '));
     params.append('code_challenge_method', 'S256');
     params.append('code_challenge', challenge);
@@ -189,10 +172,7 @@ class Gitlab {
     params.append('client_id', this.clientID);
     params.append('grant_type', 'authorization_code');
     params.append('code', code);
-    params.append(
-      'redirect_uri',
-      `${location.protocol}//${location.host}/sewer/login`
-    );
+    params.append('redirect_uri', `${location.protocol}//${location.host}/sewer/login`);
     params.append('code_verifier', verifier!);
 
     params.append('state', state);
@@ -239,7 +219,10 @@ class Gitlab {
           );
         }),
         tap((projects: Project[][]) => {
-          this.projects = projects.flat();
+          const flattened = projects.flat();
+
+          flattened.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+          this.projects = flattened;
         }),
         map(() => this.projects)
       );
@@ -251,29 +234,19 @@ class Gitlab {
   fetchProjectPipelines(p: Project) {
     return this.api(`/projects/${p.id}/pipelines`).pipe(
       map((resp: Pipeline[]) => {
-        const existing = this.pipelines.filter(
-          (p) => `${p.project_id}` === `${p.id}`
-        );
+        const existing = this.pipelines.filter((p) => `${p.project_id}` === `${p.id}`);
 
         if (resp.length === 0) {
           console.log(this.pipelines);
-          console.info(
-            `Pipeline data unchanged - using existing data for ${p.id}`
-          );
+          console.info(`Pipeline data unchanged - using existing data for ${p.id}`);
           console.log(existing);
           return existing;
         } else {
           console.info('Pipeline data changed - using new data.');
-          const unchanged = existing.filter(
-            (p) => !resp.some((r) => r.id === p.id)
-          );
+          const unchanged = existing.filter((p) => !resp.some((r) => r.id === p.id));
           const result = unchanged.concat(resp);
 
-          result.sort(
-            (a, b) =>
-              new Date(b.created_at).getTime() -
-              new Date(a.created_at).getTime()
-          );
+          result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
           console.log(result);
           return result;
@@ -299,10 +272,7 @@ class Gitlab {
         ).pipe(map((pipelines: Pipeline[][]) => pipelines.flat()));
       }),
       tap((pipelines) => {
-        pipelines.sort(
-          (a, b) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
+        pipelines.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         console.log(pipelines);
         this.pipelines = pipelines;
         this.pipelinesUpdated.next(pipelines);
@@ -490,11 +460,7 @@ class Gitlab {
 
     let updatedInit: { [key: string]: any } = init ?? ({} as any);
     const headers = updatedInit.headers ?? {};
-    if (
-      (!init || !headers.authorization) &&
-      this.access_token &&
-      !forceNoAuth
-    ) {
+    if ((!init || !headers.authorization) && this.access_token && !forceNoAuth) {
       updatedInit = {
         ...updatedInit,
         headers: {
@@ -629,9 +595,7 @@ class Gitlab {
 
   get isLoggedIn() {
     const loggedIn =
-      !!this.userSession.access_token &&
-      !!this.userSession.expiry &&
-      this.userSession.expiry > Date.now();
+      !!this.userSession.access_token && !!this.userSession.expiry && this.userSession.expiry > Date.now();
 
     if (!loggedIn && !!this.access_token) {
       this.access_token = '';

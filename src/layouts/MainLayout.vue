@@ -42,13 +42,13 @@
       </q-toolbar>
     </q-footer> -->
 
-    <q-inner-loading
+    <!-- <q-inner-loading
       :showing="loading"
       label="Loading..."
       label-class="text-teal"
       label-style="font-size: 2em"
       size="lg"
-    />
+    /> -->
   </q-layout>
 </template>
 

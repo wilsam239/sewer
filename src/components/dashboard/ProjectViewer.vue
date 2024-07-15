@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { mergeMap } from 'rxjs/internal/operators/mergeMap';
 import { tap } from 'rxjs/internal/operators/tap';
-import { Ref, computed, onMounted, ref, toRaw, watch } from 'vue';
+import { Ref, computed, onMounted, onUnmounted, ref, toRaw, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import GeneratorDialog from './GeneratorDialog.vue';
 import SongList from './SongList.vue';
@@ -10,7 +10,7 @@ import { GitlabService, Pipeline } from 'src/services/gitlab.service';
 
 import { Project } from '@openstapps/gitlab-api';
 import PipelineList from './PipelineList.vue';
-import { filter } from 'rxjs';
+import { filter, Subject } from 'rxjs';
 
 const gitlab = GitlabService;
 const route = useRoute();
@@ -22,14 +22,7 @@ const pipelines: Ref<Pipeline[]> = ref([]);
 const loading = ref(true);
 
 const statusMap = {
-  'In Progress': [
-    'created',
-    'waiting_for_resource',
-    'preparing',
-    'pending',
-    'scheduled',
-    'running',
-  ],
+  'In Progress': ['created', 'waiting_for_resource', 'preparing', 'pending', 'scheduled', 'running'],
   Complete: ['success', 'failed', 'canceled', 'skipped', 'manual'],
 };
 const statuses = [
@@ -73,9 +66,11 @@ function fetchProject(id: number) {
     .subscribe();
 }
 
-function checkRoute() {
+function checkRoute(updateLoading = false) {
   console.log('Route id: ' + route.params['id']);
-  gitlab.loading = true;
+  if (updateLoading) {
+    gitlab.loading = true;
+  }
   if (route.params['id'] !== 'all') {
     fetchProject(parseInt(route.params['id'] as string, 10));
   } else if (route.params['id'] !== undefined) {
@@ -91,29 +86,30 @@ function checkRoute() {
       .subscribe();
   }
 }
-const pendingPipelines = computed(() =>
-  pipelines.value.filter((p) => statusMap['In Progress'].includes(p.status))
-);
-const completedPipelines = computed(() =>
-  pipelines.value.filter((p) => statusMap['Complete'].includes(p.status))
-);
+const pendingPipelines = computed(() => pipelines.value.filter((p) => statusMap['In Progress'].includes(p.status)));
+const completedPipelines = computed(() => pipelines.value.filter((p) => statusMap['Complete'].includes(p.status)));
+
+const refreshSubject = new Subject<string>();
+
+const refreshSubscription = refreshSubject.subscribe(() => checkRoute());
+const interval = setInterval(() => refreshSubject.next(''), 10000);
 
 watch(
   route,
   (r) => {
+    gitlab.loading = true;
     checkRoute();
   },
   {}
 );
 
 onMounted(() => {
-  checkRoute();
-  gitlab.pipelinesUpdated.pipe(
-    filter((p) => p.length > 0),
-    tap((updated) => {
-      pipelines.value = updated;
-    })
-  );
+  checkRoute(true);
+});
+
+onUnmounted(() => {
+  refreshSubscription.unsubscribe();
+  clearInterval(interval);
 });
 </script>
 <style lang="scss">
@@ -140,18 +136,14 @@ body.screen--xs {
 } */
 </style>
 <template>
-  <div
-    id="project-header"
-    class="q-ml-lg q-mr-lg q-mt-lg row content-center items-center justify-between"
-  >
+  <div id="project-header" class="q-ml-lg q-mr-lg q-mt-lg row content-center items-center justify-between">
     <div id="project-title" class="row content-center items-center">
       <q-avatar
         rounded
         class="q-mr-md"
         :style="{
           backgroundColor: gitlab.generateColor(project?.name ?? 'all'),
-        }"
-      >
+        }">
         {{ (project?.name[0] ?? 'a').toUpperCase() }}
       </q-avatar>
       <div class="text-h5 text-weight-bold">
@@ -181,11 +173,7 @@ body.screen--xs {
           <!-- <q-item-label caption>Subhead</q-item-label> -->
         </q-item-section>
       </q-item>
-      <PipelineList
-        :pipelines="pendingPipelines"
-        :mini="false"
-        :project="project"
-      ></PipelineList>
+      <PipelineList :pipelines="pendingPipelines" :mini="false" :project="project"></PipelineList>
     </q-card>
 
     <q-card flat bordered class="status-card">
@@ -200,11 +188,7 @@ body.screen--xs {
         </q-item-section>
       </q-item>
       <q-item>
-        <PipelineList
-          :pipelines="completedPipelines"
-          :mini="false"
-          :project="project"
-        ></PipelineList>
+        <PipelineList :pipelines="completedPipelines" :mini="false" :project="project"></PipelineList>
       </q-item>
     </q-card>
   </div>
