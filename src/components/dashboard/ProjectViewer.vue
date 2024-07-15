@@ -61,6 +61,7 @@ function fetchProject(id: number) {
         // });
         pipelines.value = songs;
         gitlab.loading = false;
+        refreshing.value = false;
       })
     )
     .subscribe();
@@ -81,6 +82,7 @@ function checkRoute(updateLoading = false) {
         tap((songs) => {
           pipelines.value = songs;
           gitlab.loading = false;
+          refreshing.value = false;
         })
       )
       .subscribe();
@@ -90,8 +92,14 @@ const pendingPipelines = computed(() => pipelines.value.filter((p) => statusMap[
 const completedPipelines = computed(() => pipelines.value.filter((p) => statusMap['Complete'].includes(p.status)));
 
 const refreshSubject = new Subject<string>();
+const refreshing = ref<boolean>(false);
 
-const refreshSubscription = refreshSubject.subscribe(() => checkRoute());
+const refreshSubscription = refreshSubject.subscribe((source) => {
+  if (source == 'manual') {
+    refreshing.value = true;
+  }
+  checkRoute();
+});
 const interval = setInterval(() => refreshSubject.next(''), 10000);
 
 watch(
@@ -150,16 +158,21 @@ body.screen--xs {
         {{ project?.name ?? 'All Projects' }}
       </div>
     </div>
-    <!-- <div id="project-actions" class="row content-center items-center">
-      <q-btn outline class="q-mr-lg">
+    <div id="project-actions" class="row content-center items-center">
+      <q-btn outline class="q-mr-lg" @click="refreshSubject.next('manual')">
+        <q-tooltip>Refresh Pipelines</q-tooltip>
+        <q-icon name="fa fa-sync" class="q-mr-sm" size="xs" :class="{ 'fa-spin': refreshing }"></q-icon>
+        Refresh
+      </q-btn>
+      <!-- <q-btn outline class="q-mr-lg">
         <q-icon name="far fa-plus" class="q-mr-sm" size="xs"></q-icon>
         New Pipeline
       </q-btn>
       <q-btn outline>
         <q-icon name="fas fa-tag" class="q-mr-sm" size="xs"></q-icon>
         New Release
-      </q-btn>
-    </div> -->
+      </q-btn> -->
+    </div>
   </div>
   <div class="full-width column q-pa-lg" id="all-status-container">
     <q-card flat bordered class="status-card q-mb-lg">

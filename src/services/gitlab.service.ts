@@ -505,6 +505,8 @@ class Gitlab {
     this.userSession.access_token = undefined;
     this.userSession.refresh_token = undefined;
     this.userSession.expiry = undefined;
+    // console.log(window.location.protocol);
+    window.location.href = `${window.location.protocol}//${window.location.host}/sewer/#/login`;
     // this.userSession.user = undefined;
   }
 

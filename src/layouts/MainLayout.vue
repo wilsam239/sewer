@@ -11,8 +11,10 @@
           Sewer
         </q-toolbar-title>
 
-        <!-- <q-btn dense flat round icon="logout" @click="spotify.logout()" />
-        <q-btn dense flat round icon="refresh" @click="refreshToken" /> -->
+        <q-btn dense flat round icon="logout" @click="gitlab.logout()">
+          <q-tooltip>Logout</q-tooltip>
+        </q-btn>
+        <!-- <q-btn dense flat round icon="refresh" @click="refreshToken" /> -->
         <!-- <q-btn dense flat round icon="settings" @click="toggleSettingsDrawer" />
         <q-btn dense flat round icon="menu" @click="toggleHistoryDrawer" /> -->
       </q-toolbar>
