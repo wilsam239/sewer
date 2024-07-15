@@ -150,7 +150,7 @@ body.screen--xs {
         {{ project?.name ?? 'All Projects' }}
       </div>
     </div>
-    <div id="project-actions" class="row content-center items-center">
+    <!-- <div id="project-actions" class="row content-center items-center">
       <q-btn outline class="q-mr-lg">
         <q-icon name="far fa-plus" class="q-mr-sm" size="xs"></q-icon>
         New Pipeline
@@ -159,7 +159,7 @@ body.screen--xs {
         <q-icon name="fas fa-tag" class="q-mr-sm" size="xs"></q-icon>
         New Release
       </q-btn>
-    </div>
+    </div> -->
   </div>
   <div class="full-width column q-pa-lg" id="all-status-container">
     <q-card flat bordered class="status-card q-mb-lg">

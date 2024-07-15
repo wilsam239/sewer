@@ -205,9 +205,7 @@ body.screen--xs {
             </span> -->
           </q-item-section>
           <q-item-section>
-            <!-- <q-item-label lines="1">
-            Updated {{ getTimeSince(song.updated_at) }}
-          </q-item-label> -->
+            <q-item-label lines="1"> Updated {{ getTimeSince(song.updated_at) }} </q-item-label>
             <q-item-label lines="1"> Created {{ getTimeSince(song.created_at) }} </q-item-label>
             <!-- <q-item-label class="song-text-label text-grey-8">{{
               song.album.name

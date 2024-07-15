@@ -6,15 +6,15 @@
 
         <q-toolbar-title>
           <q-avatar>
-            <img src="../assets/spotify-64.png" />
+            <img src="icons/pipe-white.png" />
           </q-avatar>
           Sewer
         </q-toolbar-title>
 
         <!-- <q-btn dense flat round icon="logout" @click="spotify.logout()" />
         <q-btn dense flat round icon="refresh" @click="refreshToken" /> -->
-        <q-btn dense flat round icon="settings" @click="toggleSettingsDrawer" />
-        <q-btn dense flat round icon="menu" @click="toggleHistoryDrawer" />
+        <!-- <q-btn dense flat round icon="settings" @click="toggleSettingsDrawer" />
+        <q-btn dense flat round icon="menu" @click="toggleHistoryDrawer" /> -->
       </q-toolbar>
     </q-header>
 

@@ -23,9 +23,7 @@ const filterFn = useDebounceFn(() => {
   if (!projectFilter.value) {
     projects.value = allProjects;
   }
-  projects.value = allProjects.filter((p) =>
-    p.name.toLowerCase().includes(projectFilter.value.toLowerCase())
-  );
+  projects.value = allProjects.filter((p) => p.name.toLowerCase().includes(projectFilter.value.toLowerCase()));
 }, 300);
 
 onMounted(() => {
@@ -44,40 +42,24 @@ onMounted(() => {
 function createNewPipeline(project?: Project) {
   openNewDialog.value = 'pipeline';
   selectedProject.value = project?.id;
-  console.log(
-    "Open the dialog, with mode 'pipeline', passing in the playlist id"
-  );
+  console.log("Open the dialog, with mode 'pipeline', passing in the playlist id");
 }
 
 function createRelease(project?: Project) {
   openNewDialog.value = 'release';
   selectedProject.value = project?.id;
-  console.log(
-    "Open the dialog, with mode 'release', passing in the playlist id"
-  );
+  console.log("Open the dialog, with mode 'release', passing in the playlist id");
 }
 </script>
 <template>
-  <q-input
-    square
-    outlined
-    v-model="projectFilter"
-    label="Filter Projects"
-    @update:model-value="filterFn"
-  >
+  <q-input square outlined v-model="projectFilter" label="Filter Projects" @update:model-value="filterFn">
     <template v-slot:prepend>
       <q-icon name="search" />
     </template>
   </q-input>
   <q-list bordered class="rounded-borders">
     <q-item clickable v-ripple to="all">
-      <q-avatar
-        rounded
-        class="q-mr-md"
-        :style="{ backgroundColor: gitlab.generateColor('all') }"
-      >
-        A
-      </q-avatar>
+      <q-avatar rounded class="q-mr-md" :style="{ backgroundColor: gitlab.generateColor('all') }"> A </q-avatar>
 
       <q-item-section>
         <q-item-label lines="1">
@@ -94,18 +76,8 @@ function createRelease(project?: Project) {
         </q-item-label>
       </q-item-section>
     </q-item>
-    <q-item
-      v-for="project of projects"
-      v-bind:key="project.id"
-      clickable
-      v-ripple
-      :to="'/dashboard/' + project.id"
-    >
-      <q-avatar
-        rounded
-        class="q-mr-md"
-        :style="{ backgroundColor: gitlab.generateColor(project.name) }"
-      >
+    <q-item v-for="project of projects" v-bind:key="project.id" clickable v-ripple :to="'/dashboard/' + project.id">
+      <q-avatar rounded class="q-mr-md" :style="{ backgroundColor: gitlab.generateColor(project.name) }">
         {{ project.name[0].toUpperCase() }}
       </q-avatar>
 
@@ -124,7 +96,7 @@ function createRelease(project?: Project) {
         </q-item-label>
       </q-item-section>
 
-      <q-item-section side>
+      <!-- <q-item-section side>
         <div class="text-grey-8 q-gutter-xs">
           <q-btn
             size="12px"
@@ -142,12 +114,7 @@ function createRelease(project?: Project) {
                   </q-item-section>
                   <q-item-section>Run Pipeline</q-item-section>
                 </q-item>
-                <!-- <q-item clickable>
-                  <q-item-section avatar>
-                    <q-icon name="preview"></q-icon>
-                  </q-item-section>
-                  <q-item-section>View</q-item-section>
-                </q-item> -->
+
                 <q-item clickable @click="createRelease(project)">
                   <q-item-section avatar>
                     <q-icon name="project_add"></q-icon>
@@ -158,7 +125,7 @@ function createRelease(project?: Project) {
             </q-menu>
           </q-btn>
         </div>
-      </q-item-section>
+      </q-item-section> -->
     </q-item>
   </q-list>
 
