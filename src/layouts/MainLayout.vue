@@ -8,7 +8,7 @@
           <q-avatar>
             <img src="icons/pipe-white.png" />
           </q-avatar>
-          Sewer
+          Sewer <span>v{{ APP_VERSION }}</span>
         </q-toolbar-title>
 
         <q-btn dense flat round icon="logout" @click="gitlab.logout()">
@@ -56,9 +56,10 @@
 
 <script setup lang="ts">
 import { tap } from 'rxjs/operators';
+import { APP_VERSION } from 'src/assets/version';
 import ProjectList from 'src/components/dashboard/ProjectList.vue';
 import { GitlabService } from 'src/services/gitlab.service';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, version } from 'vue';
 
 const gitlab = GitlabService;
 const expiresIn = ref(0);

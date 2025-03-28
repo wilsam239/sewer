@@ -1,5 +1,17 @@
 import { Group, Project } from '@openstapps/gitlab-api';
-import { BehaviorSubject, Observable, catchError, forkJoin, from, map, mergeMap, of, tap, throwError } from 'rxjs';
+import {
+  BehaviorSubject,
+  Observable,
+  catchError,
+  forkJoin,
+  from,
+  map,
+  mergeMap,
+  of,
+  skip,
+  tap,
+  throwError,
+} from 'rxjs';
 import { SnackbarService } from './snackbar.service';
 
 const SCOPE = ['api'];
@@ -45,9 +57,27 @@ class Gitlab {
   private projects: Project[] = [];
   private pipelines: Pipeline[] = [];
 
+  readonly favourites: Set<number> = new Set();
+  private readonly $favourites = new BehaviorSubject<number[]>([]);
+
   readonly pipelinesUpdated = new BehaviorSubject<Pipeline[]>([]);
 
   constructor() {
+    const storedFavourites = window.localStorage.getItem('favourites');
+    console.log(storedFavourites);
+    if (storedFavourites != null && storedFavourites != 'undefined') {
+      this.favourites = new Set(JSON.parse(storedFavourites));
+    }
+    this.$favourites
+      .pipe(
+        skip(1),
+        tap((faves) => {
+          console.log(faves);
+          window.localStorage.setItem('favourites', JSON.stringify(faves));
+        })
+      )
+      .subscribe();
+
     const autoRefresh = () => {
       if (this.userSession.refresh_token) {
         console.log('Triggering auto token refresh');
@@ -91,7 +121,7 @@ class Gitlab {
     // });
 
     console.info('Polling for updates...');
-    this.fetchPipelines().subscribe();
+    this.fetchPipelines(true).subscribe();
   }
 
   minutesToMilliseconds(mins: number) {
@@ -259,17 +289,19 @@ class Gitlab {
     return this.api(`/projects/${project}/pipelines/${id}`);
   }
 
-  fetchPipelines() {
+  fetchPipelines(checkFavourites = false) {
     return this.fetchProjects().pipe(
       map((projects) => {
-        return projects.filter((p) => !p.archived);
+        return projects.filter((p) => (!p.archived && checkFavourites ? this.favourites.has(p.id) : true));
       }),
       mergeMap((projects) => {
-        return forkJoin(
-          projects.map((p) => {
-            return this.api(`/projects/${p.id}/pipelines`);
-          })
-        ).pipe(map((pipelines: Pipeline[][]) => pipelines.flat()));
+        return projects.length > 0
+          ? forkJoin(
+              projects.map((p) => {
+                return this.api(`/projects/${p.id}/pipelines`);
+              })
+            ).pipe(map((pipelines: Pipeline[][]) => pipelines.flat()))
+          : of([]);
       }),
       tap((pipelines) => {
         pipelines.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
@@ -550,6 +582,15 @@ class Gitlab {
     this.access_token = response.access_token;
     this.refresh_token = response.refresh_token;
     this.expiry = response.expires_in;
+  }
+
+  alterFavourite(project: Project) {
+    if (this.favourites.has(project.id)) {
+      this.favourites.delete(project.id);
+    } else {
+      this.favourites.add(project.id);
+    }
+    this.$favourites.next([...this.favourites]);
   }
 
   /*  get me() {

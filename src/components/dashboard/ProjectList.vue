@@ -64,8 +64,8 @@ function createRelease(project?: Project) {
       <q-item-section>
         <q-item-label lines="1">
           <span class="text-weight-medium">
-            <q-tooltip>All Projects</q-tooltip>
-            All Projects
+            <q-tooltip>Favourite Projects</q-tooltip>
+            Favourite Projects
           </span>
         </q-item-label>
         <q-item-label lines="1">
@@ -96,36 +96,18 @@ function createRelease(project?: Project) {
         </q-item-label>
       </q-item-section>
 
-      <!-- <q-item-section side>
+      <q-item-section side>
         <div class="text-grey-8 q-gutter-xs">
           <q-btn
             size="12px"
             flat
             dense
             round
-            icon="more_vert"
-            v-on:click.prevent
-          >
-            <q-menu auto-close class="bg-grey-9">
-              <q-list>
-                <q-item clickable @click="createNewPipeline(project)">
-                  <q-item-section avatar>
-                    <q-icon name="note_add"></q-icon>
-                  </q-item-section>
-                  <q-item-section>Run Pipeline</q-item-section>
-                </q-item>
-
-                <q-item clickable @click="createRelease(project)">
-                  <q-item-section avatar>
-                    <q-icon name="project_add"></q-icon>
-                  </q-item-section>
-                  <q-item-section>Create Release</q-item-section>
-                </q-item>
-              </q-list>
-            </q-menu>
+            :icon="gitlab.favourites.has(project.id) ? 'favorite' : 'favorite_border'"
+            @click.stop="gitlab.alterFavourite(project)">
           </q-btn>
         </div>
-      </q-item-section> -->
+      </q-item-section>
     </q-item>
   </q-list>
 

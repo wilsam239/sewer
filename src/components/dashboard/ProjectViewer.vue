@@ -45,6 +45,8 @@ const statusIcon = {
   Complete: 'stop_circle',
 };
 
+const showHelpDialog = ref(false);
+
 function fetchProject(id: number) {
   gitlab
     .fetchProject(id)
@@ -77,7 +79,7 @@ function checkRoute(updateLoading = false) {
   } else if (route.params['id'] !== undefined) {
     project.value = undefined;
     gitlab
-      .fetchPipelines()
+      .fetchPipelines(true)
       .pipe(
         tap((songs) => {
           pipelines.value = songs;
@@ -152,11 +154,28 @@ body.screen--xs {
         :style="{
           backgroundColor: gitlab.generateColor(project?.name ?? 'all'),
         }">
-        {{ (project?.name[0] ?? 'a').toUpperCase() }}
+        {{ (project?.name[0] ?? 'f').toUpperCase() }}
       </q-avatar>
       <div class="text-h5 text-weight-bold">
-        {{ project?.name ?? 'All Projects' }}
+        {{ project?.name ?? 'Favourite Projects' }}
       </div>
+      <q-btn v-if="!project" flat round icon="help_outline" v-on:click="showHelpDialog = true" />
+      <q-dialog v-model="showHelpDialog">
+        <q-card>
+          <q-card-section>
+            <div class="text-h6">Viewing Pipelines</div>
+          </q-card-section>
+
+          <q-card-section class="q-pt-none">
+            Add pipelines to your favourites so that they appear in the list. They will be automatically refreshed to
+            check for new pipelines.
+          </q-card-section>
+
+          <q-card-actions align="right">
+            <q-btn flat label="OK" color="primary" v-close-popup />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
     </div>
     <div id="project-actions" class="row content-center items-center">
       <q-btn outline class="q-mr-lg" @click="refreshSubject.next('manual')">
