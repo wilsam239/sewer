@@ -1,6 +1,6 @@
 {
   "name": "sewer",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Dashboard to view running gitlab pipelines",
   "productName": "Sewer",
   "author": "Sam Williamson <swilliamson239@hotmail.com>",
